@@ -1,0 +1,79 @@
+---
+title: "R-markdown-workshop"
+author: "Carina Fan for psychhacks2019"
+date: "`r format(Sys.time(), '%B, %d, %Y')`"
+output: 
+  html_document:
+  toc: true
+editor_options: 
+  chunk_output_type: console
+---
+R markdown is a regular text document with chunks of code (R) embedded within.
+
+The text document can be written in markdown (.Rmd) or in LaTex (.Rnw)
+
+When file is compiled a new environment R is made, and the code chunks are run
+so if you're running big data it might take while to compile.
+
+markdown -> plain R file, use purl()
+
+additional resources: http://tinyurl.com/rmarkdown-resources
+  
+  ```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) # warnings = False, messages = False
+#knitr::opts_knit$set(root.dir = "~/Desktop") # reference diff directory set this way
+# global options
+```
+
+# Set up 
+## loading packages
+
+```{r}
+# ctrl+alt+i -> to add an r block
+# install.packages("knitr")
+
+library(tidyverse)
+library(knitr)
+```
+
+## loading data
+
+```{r}
+data(sleep) # shows as <Promise>, turn into df by calling sleep 
+sleep
+# cmd + shift + k -> to knit 
+```
+
+# Analyze data 
+
+```{r}
+ttest = t.test(extra~group, paired = TRUE, data = sleep)
+
+```
+Yes, there is a difference between the drugs: t(`r ttest$parameter`)= `r  ttest$statistic %>% round(2)`, p = `r ttest$p.value %>% round(3)`.
+
+```{r}
+sleep %>%
+  ggplot(aes(x = group, y= extra, colour = group, fill= group)) +
+  geom_violin(alpha = .2) + 
+  geom_point(alpha = .8, position = "jitter") + 
+  stat_summary(fun.y = mean,
+               geom = "point", 
+               size = 4, 
+               colour = "black") + 
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = .1, colour = "black") + 
+  theme_bw() + 
+  labs(x = "drug", 
+       y = "number of extra hours of sleep", 
+       title = "Effects of drugs on sleep") +
+  guides(colour = FALSE, fill = FALSE) + 
+  scale_colour_manual(values=c("darkcyan", "darkorchid3")) + 
+  scale_fill_manual(values=c("darkcyan", "darkorchid3")) 
+
+```
+```{r}
+ggsave("drugs.png", dpi = 300, width = 6, height = 6, unit = "in")
+# need bookdown, to make references for figures and things
+# html document, fig captions
+# see figure \ref{fig:plot} name block chunk and reference it for results 
+```
